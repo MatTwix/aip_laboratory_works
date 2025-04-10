@@ -1,91 +1,94 @@
 #include <iostream>
-#include <vector>
 #include <string>
-#include <regex>
+#include <vector>
+#include <cctype>
 
 using namespace std;
 
-// Функция выделяет подстроки без символов '>', '<', '='
-vector<string> extractSubstrings(const string& str) {
-    vector<string> substrings;
-    string current;
-    
-    for (char ch : str) {
-        if (ch != '>' && ch != '<' && ch != '=') {
-            current += ch;
+bool task1(string &str) {
+    return str.find('>') == string::npos && str.find('<') == string::npos && str.find('=') == string::npos;
+}
+
+string task2(string &str) {
+    string res = "", tmp = "";
+
+    for (char c : str) {
+        if (isalnum(c)) {
+            tmp += c;
         } else {
-            if (!current.empty()) {
-                substrings.push_back(current);
-                current.clear();
+            if (!tmp.empty() && tmp.length() > res.length()) {
+                res = tmp;
             }
+            tmp = "";
         }
     }
-    if (!current.empty()) substrings.push_back(current); // Добавляем последнюю подстроку
 
-    return substrings;
-}
-
-// Функция ищет первую подстроку, содержащую только латинские буквы и цифры
-string findValidSubstring(const vector<string>& substrings) {
-    regex pattern("^[a-zA-Z0-9]+$");
-    
-    for (const string& sub : substrings) {
-        if (regex_match(sub, pattern)) {
-            return sub;
-        }
+    if (!tmp.empty() && tmp.length() > res.length()) {
+        res = tmp;
     }
-    return "";
+
+    return res;
 }
 
-// Функция удаляет комментарии вида /* ... */ в строке
-string removeComments(const string& str) {
-    regex commentPattern("/\\*.*?\\*/");
-    return regex_replace(str, commentPattern, "");
+
+void task3(string &str) {
+    size_t pos;
+    while ((pos = str.find("/*")) != string::npos) {
+        str.erase(pos, 2);
+    }
+    while ((pos = str.find("*/")) != string::npos) {
+        str.erase(pos, 2);
+    }
 }
 
-int main() {
+int main(void) {
     int n;
-    cout << "Введите количество строк: ";
+    cout << "Entrer number of strings: ";
     cin >> n;
-    cin.ignore(); // Очищаем буфер ввода
+    cin.ignore();
 
-    vector<string> strings(n);
-    vector<vector<string>> extractedSubstrings(n);
-    string foundSubstring;
-    int foundIndex = -1;
+    vector<string> inputStrings(n);
+    vector<string> taskOneStrs;
 
-    // Ввод строк и выделение подстрок
-    for (int i = 0; i < n; i++) {
-        cout << "Введите строку #" << i + 1 << ": ";
-        getline(cin, strings[i]);
-        
-        extractedSubstrings[i] = extractSubstrings(strings[i]);
-
-        // Вывод найденных подстрок
-        cout << "Подстроки без >, <, =: " << endl;
-        for (const string& sub : extractedSubstrings[i]) {
-            cout << sub << endl;
-        }
-
-        // Поиск подстроки с латинскими буквами и цифрами
-        if (foundSubstring.empty()) {
-            foundSubstring = findValidSubstring(extractedSubstrings[i]);
-            if (!foundSubstring.empty()) {
-                foundIndex = i;
-            }
+    cout << "Input strings: " << endl;
+    for (auto i = 0; i < n; i++) {
+        getline(cin, inputStrings[i]);
+        if (task1(inputStrings[i])) {
+            taskOneStrs.push_back(inputStrings[i]);
         }
     }
 
-    // Проверка наличия нужной подстроки
-    if (foundSubstring.empty()) {
-        cout << "Не найдена подстрока, содержащая только латинские буквы и цифры." << endl;
-    } else {
-        cout << "Первая подходящая подстрока: " << foundSubstring << endl;
-        
-        // Преобразование строки с найденной подстрокой
-        strings[foundIndex] = removeComments(strings[foundIndex]);
-        cout << "Измененная строка #" << foundIndex + 1 << ": " << strings[foundIndex] << endl;
+    if (taskOneStrs.empty()) {
+        cout << "There are no strings with without special symbols." << endl;
+        return 0;
     }
+
+    cout << "Task 1: " << endl;
+    for (string &str : taskOneStrs) {
+        cout << str << endl;
+    }
+
+    string targetSubstr = "";
+    int idx = -1;
+
+    for (auto i = 0; i < taskOneStrs.size(); ++i) {
+        string candidate = task2(taskOneStrs[i]);
+        if (!candidate.empty() && candidate.length() > targetSubstr.length()) {
+            targetSubstr = candidate;
+            idx = i;
+        }
+    }
+
+    if (targetSubstr.empty()) {
+        cout << "There are no substrings with only latin letters and numbers" << endl;
+        return 0;
+    }
+
+    cout << "Task 2: " << targetSubstr << endl;
+
+    task3(taskOneStrs[idx]);
+
+    cout << "Task 3: " << taskOneStrs[idx] << endl;
 
     return 0;
 }
